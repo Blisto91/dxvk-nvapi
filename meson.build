@@ -59,6 +59,8 @@ dxvk_nvapi_version = vcs_tag(
 conf_data = configuration_data()
 conf_data.set('BUILD_COMPILER', cpp.get_id())
 conf_data.set('BUILD_COMPILER_VERSION', cpp.version())
+conf_data.set('BUILD_COMPILER_ARGS', get_option('cpp_args'))
+conf_data.set('BUILD_LINKER_ARGS', get_option('cpp_link_args'))
 conf_data.set('BUILD_TARGET', dxvk_cpu_family)
 conf_data.set('BUILD_TYPE', get_option('buildtype'))
 configure_file(
