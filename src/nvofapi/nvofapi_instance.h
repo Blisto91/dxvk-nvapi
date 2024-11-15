@@ -24,28 +24,23 @@
 #pragma once
 
 #include "../nvofapi_private.h"
+#include "resource_factory.h"
+#include "vulkan.h"
 #include "../interfaces/vkd3d-proton_interfaces.h"
 
 namespace dxvk {
     constexpr uint32_t CMDS_IN_FLIGHT = 8;
 
     class NvOFInstance {
-      public:
-        NvOFInstance(VkInstance vkInstance,
-            VkPhysicalDevice vkPhysicalDevice,
-            VkDevice vkDevice) : m_vkInstance(vkInstance),
-                                 m_vkPhysicalDevice(vkPhysicalDevice), m_vkDevice(vkDevice) {
-        }
 
-        NvOFInstance() {};
+      public:
+        explicit NvOFInstance(ResourceFactory& resourceFactory) : m_resourceFactory(resourceFactory) {};
+        NvOFInstance(ResourceFactory& resourceFactory, VkInstance vkInstance, VkPhysicalDevice vkPhysicalDevice, VkDevice vkDevice)
+            : m_resourceFactory(resourceFactory), m_vkInstance(vkInstance), m_vkPhysicalDevice(vkPhysicalDevice), m_vkDevice(vkDevice) {}
 
         virtual ~NvOFInstance() {
             m_vkDestroyOpticalFlowSessionNV(m_vkDevice, m_vkOfaSession, nullptr);
-            FreeLibrary(m_library);
         }
-
-        VkDevice GetVkDevice() { return m_vkDevice; }
-        VkOpticalFlowSessionNV GetOfaSession() { return m_vkOfaSession; }
 
         NV_OF_STATUS GetCaps(NV_OF_CAPS param, uint32_t* capsVal, uint32_t* size);
 
@@ -58,9 +53,13 @@ namespace dxvk {
         void RecordCmdBuf(const NV_OF_EXECUTE_INPUT_PARAMS_VK* inParams, NV_OF_EXECUTE_OUTPUT_PARAMS_VK* outParams, VkCommandBuffer cmdBuf);
 
       protected:
+        ResourceFactory& m_resourceFactory;
+        std::unique_ptr<Vulkan> m_vulkan;
+
         VkInstance m_vkInstance{};
         VkPhysicalDevice m_vkPhysicalDevice{};
         VkDevice m_vkDevice{};
+
         VkOpticalFlowSessionNV m_vkOfaSession{};
         PFN_vkGetInstanceProcAddr m_vkGetInstanceProcAddr{};
         PFN_vkGetDeviceProcAddr m_vkGetDeviceProcAddr{};
@@ -72,7 +71,6 @@ namespace dxvk {
         PFN_vkCmdOpticalFlowExecuteNV m_vkCmdOpticalFlowExecuteNV{};
 
         PFN_vkGetPhysicalDeviceQueueFamilyProperties m_vkGetPhysicalDeviceQueueFamilyProperties{};
-        HMODULE m_library{};
 
         uint32_t GetVkOFAQueue();
     };

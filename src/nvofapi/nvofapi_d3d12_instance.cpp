@@ -26,7 +26,7 @@
 
 namespace dxvk {
 
-    NvOFInstanceD3D12::NvOFInstanceD3D12(ID3D12Device* pD3D12Device) {
+    NvOFInstanceD3D12::NvOFInstanceD3D12(ResourceFactory& resourceFactory, ID3D12Device* pD3D12Device) : NvOFInstance(resourceFactory) {
         // Query for the extension interface
         // Grab the vk triad
         if (FAILED(pD3D12Device->QueryInterface(IID_PPV_ARGS(&m_device))))
@@ -44,10 +44,7 @@ namespace dxvk {
     }
 
     bool NvOFInstanceD3D12::Initialize() {
-        m_library = LoadLibraryA("winevulkan.dll");
-        if (!m_library) {
-            return false;
-        }
+        m_vulkan = m_resourceFactory.CreateVulkan("winevulkan.dll");
 
         // Confirm that OPTICAL_FLOW extension is available
         if (!m_deviceExt->GetExtensionSupport(D3D12_VK_NV_OPTICAL_FLOW)) {
@@ -55,7 +52,6 @@ namespace dxvk {
             return false;
         }
 
-        m_vkGetInstanceProcAddr = (PFN_vkGetInstanceProcAddr) reinterpret_cast<void*>(GetProcAddress(m_library, "vkGetInstanceProcAddr"));
         m_vkGetDeviceProcAddr = (PFN_vkGetDeviceProcAddr)m_vkGetInstanceProcAddr(m_vkInstance, "vkGetDeviceProcAddr");
         m_vkGetPhysicalDeviceQueueFamilyProperties = (PFN_vkGetPhysicalDeviceQueueFamilyProperties)m_vkGetInstanceProcAddr(m_vkInstance, "vkGetPhysicalDeviceQueueFamilyProperties");
 

@@ -21,6 +21,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#include "nvofapi_globals.h"
 #include "nvofapi/nvofapi_image.h"
 #include "nvofapi/nvofapi_d3d12_instance.h"
 #include "nvofapi_entrypoints.h"
@@ -31,8 +32,10 @@
 #include "../version.h"
 #include "../config.h"
 
-using namespace dxvk;
+static auto initializationMutex = std::mutex{};
+
 extern "C" {
+    using namespace dxvk;
 
     // D3D12 entrypoints
     NV_OF_STATUS NVOFAPI CreateOpticalFlowD3D12(ID3D12Device* pD3D12Device, NvOFHandle* hOFInstance) {
@@ -41,9 +44,14 @@ extern "C" {
         if (log::tracing())
             log::trace(n, log::fmt::ptr(pD3D12Device), log::fmt::ptr(hOFInstance));
 
+        std::scoped_lock lock(initializationMutex);
+
+        if (resourceFactory == nullptr)
+            resourceFactory = std::make_unique<ResourceFactory>();
+
         NvOFInstanceD3D12* nvOF = nullptr;
         try {
-            nvOF = new NvOFInstanceD3D12(pD3D12Device);
+            nvOF = new NvOFInstanceD3D12(*resourceFactory, pD3D12Device);
         } catch (std::exception const& e) {
             log::info(str::format("CreateOpticalFlowD3D12 exception, ", e.what()));
             return ErrorGeneric(n);

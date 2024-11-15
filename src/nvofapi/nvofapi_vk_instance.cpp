@@ -27,14 +27,9 @@
 namespace dxvk {
 
     bool NvOFInstanceVk::Initialize() {
-        // For VK we cannot load winevulkan directly or we may break handle
-        // opacity.
-        m_library = LoadLibraryA("vulkan-1.dll");
-        if (!m_library) {
-            return false;
-        }
+        // For Vulkan we cannot load `winevulkan.dll` directly, or we may break handle opacity
+        m_vulkan = m_resourceFactory.CreateVulkan("vulkan-1.dll");
 
-        m_vkGetInstanceProcAddr = (PFN_vkGetInstanceProcAddr) reinterpret_cast<void*>(GetProcAddress(m_library, "vkGetInstanceProcAddr"));
         m_vkGetDeviceProcAddr = (PFN_vkGetDeviceProcAddr)m_vkGetInstanceProcAddr(m_vkInstance, "vkGetDeviceProcAddr");
         m_vkGetPhysicalDeviceQueueFamilyProperties = (PFN_vkGetPhysicalDeviceQueueFamilyProperties)m_vkGetInstanceProcAddr(m_vkInstance, "vkGetPhysicalDeviceQueueFamilyProperties");
 

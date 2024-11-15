@@ -25,13 +25,14 @@
 
 #include "../nvofapi_private.h"
 #include "nvofapi_instance.h"
+#include "vulkan.h"
 #include "../util/com_pointer.h"
 
 namespace dxvk {
     class NvOFInstanceD3D12 : public NvOFInstance {
 
       public:
-        NvOFInstanceD3D12(ID3D12Device* pD3D12Device);
+        NvOFInstanceD3D12(ResourceFactory& resourceFactory, ID3D12Device* pD3D12Device);
         ~NvOFInstanceD3D12() override = default;
 
         bool Initialize();
